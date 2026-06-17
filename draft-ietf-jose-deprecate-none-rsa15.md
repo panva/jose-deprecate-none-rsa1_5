@@ -76,7 +76,7 @@ informative:
 This document updates {{RFC7518}} to deprecate the JWS algorithm "none" and the JWE algorithm
 "RSA1_5". These algorithms have known security weaknesses. It also updates the Review
 Instructions for Designated Experts to establish baseline security requirements that future
-algorithm registrations should meet.
+algorithm registrations are expected to meet.
 
 --- middle
 
@@ -90,12 +90,12 @@ correctly leading to exploitable vulnerabilities. This document deprecates two s
  - The JWS "none" algorithm, which indicates that no security is applied to the message at all.
  - The JWE "RSA1_5" algorithm, which indicates RSA encryption with PKCS#1 version 1.5 padding.
 
-Note that RSA signatures using PKCS#1 version 1.5 padding (`RS256`, `RS384`, and `RS512`) are
+Note that RSA signatures using PKCS#1 version 1.5 padding ("RS256", "RS384", and "RS512") are
 unchanged by this specification and can still be used.
 
 Additionally, this document also updates the Review Instructions for the JOSE Designated Experts,
 to establish baseline security requirements for future JOSE algorithm registrations. Only algorithms
-that are reasonably believed to satisfy these requirements should be registered in future.
+that are reasonably believed to satisfy these requirements are expected to be registered in the future.
 
 # The 'none' algorithm {#none}
 
@@ -138,20 +138,23 @@ padding mode has long been known to have security issues, since at least Bleiche
 hardware. However, more secure replacements such as OAEP {{RFC8017}} or elliptic curve encryption
 algorithms are now widely available. NIST has disallowed the use of this encryption mode for federal
 use since the end of 2023 {{NIST.SP800-131Ar2}} and a CFRG draft {{I-D.irtf-cfrg-rsa-guidance}} also deprecates
-this encryption mode for IETF protocols. This document therefore also deprecates this algorithm for
+this encryption mode for new protocols and deployments. This document therefore also deprecates this algorithm for
 JWE.
 
 # Guidance on deprecation
 
-Both of the algorithms listed above are deprecated for use in JOSE&mdash;the `none` algorithm for JWS,
-and `RSA1_5` for JWE. JOSE library developers should deprecate support for these algorithms. Application
-developers MUST disable support for these algorithms by default. New specifications building on
-top of JOSE MUST NOT allow the use of either algorithm.
+Both of the algorithms listed above are deprecated for use in JOSE&mdash;the "none" algorithm for JWS,
+and "RSA1_5" for JWE. JOSE library developers SHOULD deprecate support for these algorithms. Application
+developers MUST disable support for these algorithms by default. Consistent with the existing requirement
+in {{Section 3.6 of RFC7518}} that implementations "MUST NOT accept Unsecured JWSs by default", an
+application that has a specific need for one of these algorithms MAY enable it, but only for the specific
+objects or operations that require it and not at a global level. New specifications building on top of
+JOSE MUST NOT allow the use of either algorithm.
 
 The IANA algorithm registry distinguishes between algorithms that are "Deprecated" and those that are
 "Prohibited". The algorithms identified in this document are to be marked as Deprecated only. Existing
-specifications and applications that make use of these algorithms can continue to do so, but should
-consider adopting alternatives in future updates.
+specifications and applications that make use of these algorithms can continue to do so, but are
+encouraged to adopt alternatives in future updates.
 
 # Conventions and Definitions
 
@@ -173,16 +176,31 @@ The following changes are to be made to the IANA JOSE Web Signature and Encrypti
 ## Updated Review Instructions for Designated Experts
 
 The review instructions for the designated experts for the IANA "JSON Web Signature and Encryption Algorithms"
-registry {{IANA.jose}} in {{Section 7.1 of RFC7518}} are updated to add these additional review criteria:
+registry {{IANA.jose}} in {{Section 7.1 of RFC7518}} are updated to add the following review criteria.
 
- - For JWS signature algorithms, only algorithms that are believed to meet the standard security goal
-   of existential unforgeability under a chosen message attack (EUF-CMA) should be considered for approval. See textbooks such as {{BonehShoup}} (Section 13.1.1) for a definition of existential unforgeability.
- - For JWE key management algorithms (specified with the "alg" header), only algorithms that are believed
-   to meet the standard security goal of indistinguishability under an adaptive chosen ciphertext
-   attack (IND-CCA2) should be considered for approval, as defined in textbooks such as {{BonehShoup}} (Section 9.2.2 and Chapter 12).
- - For JWE content encryption methods (specified with the "enc" header), only algorithms that are believed
-   to meet the standard security goal of authenticated encryption with associated data (AEAD) should
-   be considered for approval. See {{RFC5116}}, and textbooks such as {{BonehShoup}} (Section 9.1), for the definition of AEAD security.
+These criteria apply only to algorithms being registered for use with JWS or JWE, that is, those whose
+Algorithm Usage Location includes "alg" or "enc". They do not apply to algorithms registered solely for use
+as a JWK "alg" value (Algorithm Usage Location "JWK"), which do not define a JWS or JWE algorithm and instead
+only enable a key representation; such registrations remain governed by the general criteria in
+{{Section 7.1 of RFC7518}}. As with those general criteria, these criteria do not apply to algorithms being
+registered as Deprecated or Prohibited.
+
+ - For algorithms used with the "alg" parameter of a JWS (that is, to apply a digital signature or a MAC to
+   the JWS), only algorithms that are reasonably believed to meet the standard security goal of existential
+   unforgeability under a chosen message attack (EUF-CMA) are to be approved. See textbooks such as
+   {{BonehShoup}} (Section 13.1.1) for a definition of existential unforgeability.
+ - For JWE key encryption and key encapsulation mechanism (KEM) algorithms (the "alg" parameter values used
+   with JWE that encrypt or encapsulate the Content Encryption Key using a public key), only algorithms that
+   are reasonably believed to meet the standard security goal of indistinguishability under an adaptive chosen
+   ciphertext attack (IND-CCA2, or for a KEM the analogous IND-CCA2 notion) are to be approved. See textbooks
+   such as {{BonehShoup}} (Section 9.2.2 and Chapter 12).
+ - For JWE content encryption methods (the "enc" parameter used with JWE), only algorithms that are reasonably
+   believed to meet the standard security goal of authenticated encryption with associated data (AEAD) are to
+   be approved. See {{RFC5116}}, and textbooks such as {{BonehShoup}} (Section 9.1), for the definition of AEAD
+   security.
+
+Other JWE key management algorithms (the "alg" parameter values used with JWE for key wrapping, key agreement,
+or direct encryption) remain subject to the general criteria in {{Section 7.1 of RFC7518}}.
 
 --- back
 
